@@ -75,7 +75,7 @@ public class MinePanel extends JPanel{
 				
 			}
 		
-		//initialize numOfMines number of mines
+		//initialize numOfMines - number of mines
 		int minesSet = 0; //number of mines already set on the board
 		int i; int j;
 		Random rand = new Random();
