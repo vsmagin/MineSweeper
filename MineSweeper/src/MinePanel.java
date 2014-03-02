@@ -35,6 +35,7 @@ public class MinePanel extends JPanel{
 				buttons[i][j] = new MineButton();
 				this.add(buttons[i][j]);
 				
+				//add MouseListener to listen to right click
 				buttons[i][j].addMouseListener(new MouseAdapter(){		
 					public void mouseClicked(MouseEvent e){
 						if (e.getButton() == MouseEvent.BUTTON3){
@@ -55,24 +56,29 @@ public class MinePanel extends JPanel{
 					}
 				});
 				
+				//add button listener to listen to left click
 				buttons[i][j].addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						if (!gameStarted)	gameStarted = true;				
 						MineButton button = (MineButton)e.getSource();
 						if (button.getState() == MineButton.CLEAR && !isGameOver){
 							button.disableButton();
-							oneMoreButtonOpened();
 							button.setState(button.getType());
-							if (button.getState() == MineButton.MINE){
+							if (button.getState() == MineButton.MINE){	//check if LOST
 								button.thisMineClicked();
 								showAllMines();
 								System.out.println("LOST");
+							}
+							else if (++openedButtons == maxButtons) gameWin();	//check if WIN
+							else{
+								int i = button.getY()/button.getHeight();
+								int j = button.getX()/button.getWidth();
+								checkAroundButton(button,i,j);
 							}
 						}
 						repaint();
 					}
 				});
-				
 			}
 		
 		//initialize numOfMines - number of mines
@@ -99,7 +105,7 @@ public class MinePanel extends JPanel{
 	}
 	
 	public MinePanel(){
-		this(10,10,10);
+		this(10,15,10);
 	}
 	
 	public void showAllMines(){
@@ -114,9 +120,40 @@ public class MinePanel extends JPanel{
 			}
 	}
 	
-	public void oneMoreButtonOpened(){
-		openedButtons++;
-		if (openedButtons == maxButtons){
+	private void checkAroundButton(MineButton button, int i, int j){
+		buttons[i][j].disableButton();
+		buttons[i][j].setState(button.getType());
+		if (button.getType() == MineButton.NUMBER)	return;
+		else if (button.getType() == MineButton.EMPTY){
+			if (i > 0){ //if not top row
+				i--;
+				if (!buttons[i][j].isDisabled())	
+					checkAroundButton(buttons[i][j], i, j);
+				i++;
+			}
+			if (i < rows-1){ //if not bottom row
+				i++;
+				if	(!buttons[i][j].isDisabled())
+					checkAroundButton(buttons[i][j], i, j);
+				i--;
+			}
+			if (j > 0){ //if not left most column
+				j--;
+				if (!buttons[i][j].isDisabled())
+					checkAroundButton(buttons[i][j], i, j);
+				j++;
+			}
+			if (j < columns-1){ //if not right most column
+				j++;
+				if	(!buttons[i][j].isDisabled())
+					checkAroundButton(buttons[i][j], i, j);
+				j--;
+			}
+		}
+	}
+	
+	
+	public void gameWin(){
 			isWin = true;
 			isGameOver = true;
 			System.out.println("WIN");
@@ -125,8 +162,7 @@ public class MinePanel extends JPanel{
 					if (buttons[i][j].getType() == MineButton.MINE && 
 							buttons[i][j].getState() == MineButton.CLEAR)
 						buttons[i][j].setState(MineButton.FLAG);
-				}
-		}
+				}			
 	}
 	
 	public double getTime(){
